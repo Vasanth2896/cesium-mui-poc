@@ -8,24 +8,30 @@ const CesiumContainer = ({ viewerRef }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
+    if (viewerRef.current) return;
     Ion.defaultAccessToken = CESIUM_TOKEN;
-   
+
     viewerRef.current = new Viewer(containerRef.current, {
       animation: false,
       timeline: false,
+      geocoder: false,
       terrain: Terrain.fromWorldTerrain(),
     });
 
+    console.log("viewer ref created:", viewerRef.current);
+
     return () => {
       refDestroy(viewerRef);
+      console.log("viewer ref destroyed");
     };
   }, []);
 
-
   return (
-    <div ref={containerRef} style={{ width: "100%", height: "100vh" }}>
-        <span>This is dummy text;</span>
-    </div>
+    <div
+      ref={containerRef}
+      id="cesiumContainer"
+      style={{ width: "100%", height: "100vh" }}
+    ></div>
   );
 };
 
