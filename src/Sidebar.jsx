@@ -1,7 +1,14 @@
-import { Button, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  FormGroup,
+  FormControlLabel,
+  Switch,
+} from "@mui/material";
 import { handleGeocoderSearch } from "./utils/cesiumController";
 
-const Sidebar = ({ viewerRef, state, setState }) => {
+const Sidebar = ({ viewerRef, state, setState, darkTheme, setDarkTheme }) => {
   const handleSearchChange = (e) => {
     setState((prev) => ({ ...prev, searchQuery: e.target.value }));
   };
@@ -14,26 +21,38 @@ const Sidebar = ({ viewerRef, state, setState }) => {
       setState((prev) => ({ ...prev, searchQuery: "", searchError: true }));
     }
   };
-  
+
+  const handleThemeToggle = () => {
+    setDarkTheme((darkTheme) => !darkTheme);
+  };
+
   return (
-    <div
-      style={{ backgroundColor: "#ffffff", height: "100vh", padding: "10px" }}
-    >
-      <TextField
-        id="outlined-basic"
-        label="location-search"
-        variant="outlined"
-        value={state.searchQuery}
-        onChange={handleSearchChange}
-        style={{ marginBottom: 20 }}
-      />
-      <Button variant="contained" onClick={handleClick}>
-        search
-      </Button>
-      {state.searchError && (
-        <p style={{ color: "red" }}>Please enter a valid search query.</p>
-      )}
-    </div>
+    <Box style={{ height: "100vh", padding: "10px" }}>
+      <Box>
+        <FormGroup>
+          <FormControlLabel
+            control={<Switch checked={darkTheme} onClick={handleThemeToggle} />}
+            label="Toggle Theme"
+          />
+        </FormGroup>
+      </Box>
+      <Box style={{ marginTop: "20px" }}>
+        <TextField
+          id="outlined-basic"
+          label="location-search"
+          variant="outlined"
+          value={state.searchQuery}
+          onChange={handleSearchChange}
+          style={{ marginBottom: 20 }}
+        />
+        <Button variant="contained" onClick={handleClick}>
+          search
+        </Button>
+        {state.searchError && (
+          <p style={{ color: "red" }}>Please enter a valid search query.</p>
+        )}
+      </Box>
+    </Box>
   );
 };
 
