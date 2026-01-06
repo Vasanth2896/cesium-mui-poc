@@ -1,32 +1,21 @@
-import { useRef, useState, useMemo, useEffect } from "react";
+import { useRef, useMemo } from "react";
 import "./App.css";
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import CesiumContainer from "./CesiumContainer";
-import Sidebar from "./Sidebar";
-import { createTheme, CssBaseline, Grid } from "@mui/material";
+import { createTheme, CssBaseline } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
-import {
-  DARK_THEME,
-  LIGHT_THEME,
-  LOCAL_STORAGE_THEME_KEY,
-} from "./utils/constants";
+import { DARK_THEME, LIGHT_THEME } from "./utils/constants";
+import { useAppState } from "./hooks/useAppState";
 
 function App() {
   const viewerRef = useRef(null);
-  const [darkTheme, setDarkTheme] = useState(() => {
-    const savedTheme = localStorage.getItem(LOCAL_STORAGE_THEME_KEY);
-    return savedTheme === DARK_THEME;
-  });
-  const [state, setState] = useState({
-    viewerContainerId: null,
-    searchQuery: "",
-  });
+  const { appState, updateState, toggleTheme } = useAppState();
 
   const theme = useMemo(
     () =>
       createTheme({
         palette: {
-          mode: darkTheme ? DARK_THEME : LIGHT_THEME,
+          mode: appState.darkTheme ? DARK_THEME : LIGHT_THEME,
           primary: {
             main: "#90caf9",
           },
@@ -35,37 +24,18 @@ function App() {
           },
         },
       }),
-    [darkTheme]
+    [appState.darkTheme]
   );
-
-  useEffect(() => {
-    localStorage.setItem(
-      LOCAL_STORAGE_THEME_KEY,
-      darkTheme ? DARK_THEME : LIGHT_THEME
-    );
-  }, [darkTheme]);
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Grid container>
-        <Grid size={2}>
-          <Sidebar
-            viewerRef={viewerRef}
-            state={state}
-            setState={setState}
-            darkTheme={darkTheme}
-            setDarkTheme={setDarkTheme}
-          />
-        </Grid>
-        <Grid size={10}>
-          <CesiumContainer
-            viewerRef={viewerRef}
-            state={state}
-            setState={setState}
-          />
-        </Grid>
-      </Grid>
+      <CesiumContainer
+        viewerRef={viewerRef}
+        appState={appState}
+        updateState={updateState}
+        toggleTheme={toggleTheme}
+      />
     </ThemeProvider>
   );
 }
