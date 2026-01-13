@@ -30,7 +30,6 @@ const CesiumContainer = ({
   toggleTheme,
   appState,
   updateState,
-  setScaleFactor,
 }) => {
   const containerRef = useRef(null);
   const theme = useTheme();
@@ -113,35 +112,21 @@ const CesiumContainer = ({
               value={appState.searchQuery}
               onChange={(e) => updateState({ searchQuery: e.target.value })}
               sx={{
-                backgroundColor:
-                  theme.palette.mode === DARK_THEME
-                    ? "rgba(30, 30, 30, 0.9)"
-                    : "rgba(255, 255, 255, 0.9)",
+                backgroundColor: theme.palette.background.paper,
                 borderRadius: "8px",
                 "& .MuiOutlinedInput-root": {
-                  color:
-                    theme.palette.mode === DARK_THEME
-                      ? theme.palette.primary.light
-                      : theme.palette.primary.main,
+                  color: theme.palette.text.primary,
                   "& fieldset": {
-                    borderColor:
-                      theme.palette.mode === DARK_THEME
-                        ? "rgba(144, 202, 249, 0.3)"
-                        : "rgba(144, 202, 249, 0.5)",
+                    borderColor: theme.palette.primary.main,
+                    borderWidth: "2px",
                   },
                   "&:hover fieldset": {
-                    borderColor:
-                      theme.palette.mode === DARK_THEME
-                        ? "rgba(144, 202, 249, 0.5)"
-                        : "rgba(144, 202, 249, 0.7)",
+                    borderColor: theme.palette.primary.light,
                   },
                 },
                 "& .MuiOutlinedInput-input::placeholder": {
-                  color:
-                    theme.palette.mode === DARK_THEME
-                      ? "rgba(144, 202, 249, 0.5)"
-                      : "rgba(0, 0, 0, 0.5)",
-                  opacity: 1,
+                  color: theme.palette.text.secondary,
+                  opacity: 0.7,
                 },
               }}
               InputProps={{
@@ -153,10 +138,7 @@ const CesiumContainer = ({
                         updateState({ searchOpen: false, searchQuery: "" });
                       }}
                       sx={{
-                        color:
-                          theme.palette.mode === DARK_THEME
-                            ? theme.palette.primary.light
-                            : theme.palette.primary.main,
+                        color: theme.palette.primary.main,
                       }}
                     >
                       <CloseIcon fontSize="small" />
@@ -172,25 +154,17 @@ const CesiumContainer = ({
         <IconButton
           onClick={() => updateState({ searchOpen: !appState.searchOpen })}
           sx={{
-            backgroundColor:
-              theme.palette.mode === DARK_THEME
-                ? "rgba(30, 30, 30, 0.9)"
-                : "rgba(255, 255, 255, 0.9)",
-            color:
-              theme.palette.mode === DARK_THEME
-                ? theme.palette.primary.light
-                : theme.palette.primary.main,
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.primary.main,
             borderRadius: "8px",
+            border: `2px solid ${theme.palette.primary.main}`,
             "&:hover": {
-              backgroundColor:
-                theme.palette.mode === DARK_THEME
-                  ? "rgba(30, 30, 30, 1)"
-                  : "rgba(255, 255, 255, 1)",
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
             },
             "&:focus": {
               outline: "none",
             },
-            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
           }}
         >
           <SearchIcon />
@@ -205,10 +179,9 @@ const CesiumContainer = ({
               mt: 1,
               fontSize: "0.85rem",
               padding: "8px 12px",
-              backgroundColor:
-                theme.palette.mode === DARK_THEME
-                  ? "rgba(211, 47, 47, 0.9)"
-                  : "rgba(244, 67, 54, 0.9)",
+              backgroundColor: theme.palette.error.main,
+              color: theme.palette.error.contrastText,
+              fontWeight: 600,
             }}
           >
             {appState.searchError}
@@ -219,25 +192,17 @@ const CesiumContainer = ({
         <IconButton
           onClick={handleHomeClick}
           sx={{
-            backgroundColor:
-              theme.palette.mode === DARK_THEME
-                ? "rgba(30, 30, 30, 0.9)"
-                : "rgba(255, 255, 255, 0.9)",
-            color:
-              theme.palette.mode === DARK_THEME
-                ? theme.palette.primary.light
-                : theme.palette.primary.main,
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.primary.main,
             borderRadius: "8px",
+            border: `2px solid ${theme.palette.primary.main}`,
             "&:hover": {
-              backgroundColor:
-                theme.palette.mode === DARK_THEME
-                  ? "rgba(30, 30, 30, 1)"
-                  : "rgba(255, 255, 255, 1)",
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
             },
             "&:focus": {
               outline: "none",
             },
-            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
           }}
         >
           <HomeIcon />
@@ -250,12 +215,9 @@ const CesiumContainer = ({
           onChange={handleScaleChange}
           orientation="vertical"
           sx={{
-            backgroundColor:
-              theme.palette.mode === DARK_THEME
-                ? "rgba(30, 30, 30, 0.9)"
-                : "rgba(255, 255, 255, 0.9)",
+            backgroundColor: theme.palette.background.paper,
             borderRadius: `${8 * appState.scaleFactor}px`,
-            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+            border: `2px solid ${theme.palette.primary.main}`,
             "& .MuiToggleButtonGroup-grouped": {
               margin: 0,
               border: "none",
@@ -277,27 +239,15 @@ const CesiumContainer = ({
               width: `${40 * appState.scaleFactor}px`,
               height: `${40 * appState.scaleFactor}px`,
               padding: 0,
-              color:
-                theme.palette.mode === DARK_THEME
-                  ? theme.palette.primary.light
-                  : theme.palette.primary.main,
+              color: theme.palette.primary.main,
               fontSize: `${0.7 * appState.scaleFactor}rem`,
               fontWeight: 600,
               "&.Mui-selected": {
-                backgroundColor:
-                  theme.palette.mode === DARK_THEME
-                    ? "rgba(144, 202, 249, 0.2)"
-                    : "rgba(144, 202, 249, 0.15)",
-                color:
-                  theme.palette.mode === DARK_THEME
-                    ? theme.palette.primary.light
-                    : theme.palette.primary.main,
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
               },
               "&:hover": {
-                backgroundColor:
-                  theme.palette.mode === DARK_THEME
-                    ? "rgba(144, 202, 249, 0.1)"
-                    : "rgba(144, 202, 249, 0.1)",
+                backgroundColor: theme.palette.action.hover,
               },
               "&:focus": {
                 outline: "none",
@@ -322,25 +272,17 @@ const CesiumContainer = ({
         <IconButton
           onClick={toggleTheme}
           sx={{
-            backgroundColor:
-              theme.palette.mode === DARK_THEME
-                ? "rgba(30, 30, 30, 0.9)"
-                : "rgba(255, 255, 255, 0.9)",
-            color:
-              theme.palette.mode === DARK_THEME
-                ? theme.palette.primary.light
-                : theme.palette.primary.main,
+            backgroundColor: theme.palette.background.paper,
+            color: theme.palette.primary.main,
             borderRadius: "8px",
+            border: `2px solid ${theme.palette.primary.main}`,
             "&:hover": {
-              backgroundColor:
-                theme.palette.mode === DARK_THEME
-                  ? "rgba(30, 30, 30, 1)"
-                  : "rgba(255, 255, 255, 1)",
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
             },
             "&:focus": {
               outline: "none",
             },
-            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
           }}
         >
           {theme.palette.mode === DARK_THEME ? (
