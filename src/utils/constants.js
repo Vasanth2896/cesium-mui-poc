@@ -1,6 +1,11 @@
 const DARK_THEME = "dark";
 const LIGHT_THEME = "light";
 const LOCAL_STORAGE_THEME_KEY = "theme-mode";
+const LOCAL_STORAGE_SCALE_KEY = "ui-scale";
+
+// UI Scale factors - compact first to maximize map space
+const SCALE_FACTORS = [0.75, 1, 1.25, 1.5];
+const DEFAULT_SCALE = 1;
 
 // Location mappings for Cesium map navigation
 const LOCATIONS = {
@@ -11,4 +16,12 @@ const LOCATIONS = {
   tokyo: { latitude: 35.6762, longitude: 139.6503, altitude: 400000, label: "Tokyo" },
 };
 
-export { DARK_THEME, LIGHT_THEME, LOCAL_STORAGE_THEME_KEY, LOCATIONS };
+export {
+  DARK_THEME,
+  LIGHT_THEME,
+  LOCAL_STORAGE_THEME_KEY,
+  LOCAL_STORAGE_SCALE_KEY,
+  SCALE_FACTORS,
+  DEFAULT_SCALE,
+  LOCATIONS,
+};

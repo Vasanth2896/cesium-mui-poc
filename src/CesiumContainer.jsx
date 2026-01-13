@@ -13,6 +13,8 @@ import {
   TextField,
   InputAdornment,
   Alert,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import HomeIcon from "@mui/icons-material/Home";
@@ -20,11 +22,19 @@ import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
-import { DARK_THEME } from "./utils/constants.js";
+import { DARK_THEME, SCALE_FACTORS } from "./utils/constants.js";
+import { useScale } from "./contexts/ScaleContext";
 
-const CesiumContainer = ({ viewerRef, toggleTheme, appState, updateState }) => {
+const CesiumContainer = ({
+  viewerRef,
+  toggleTheme,
+  appState,
+  updateState,
+  setScaleFactor,
+}) => {
   const containerRef = useRef(null);
   const theme = useTheme();
+  const { onScaleChange } = useScale();
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -43,6 +53,12 @@ const CesiumContainer = ({ viewerRef, toggleTheme, appState, updateState }) => {
 
   const handleHomeClick = () => {
     flyToLocation(viewerRef.current, "home");
+  };
+
+  const handleScaleChange = (event, newScale) => {
+    if (newScale !== null) {
+      onScaleChange(newScale);
+    }
   };
 
   useEffect(() => {
@@ -226,6 +242,81 @@ const CesiumContainer = ({ viewerRef, toggleTheme, appState, updateState }) => {
         >
           <HomeIcon />
         </IconButton>
+
+        {/* UI Scale Selector */}
+        <ToggleButtonGroup
+          value={appState.scaleFactor}
+          exclusive
+          onChange={handleScaleChange}
+          orientation="vertical"
+          sx={{
+            backgroundColor:
+              theme.palette.mode === DARK_THEME
+                ? "rgba(30, 30, 30, 0.9)"
+                : "rgba(255, 255, 255, 0.9)",
+            borderRadius: `${8 * appState.scaleFactor}px`,
+            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+            "& .MuiToggleButtonGroup-grouped": {
+              margin: 0,
+              border: "none",
+              "&:not(:first-of-type)": {
+                borderRadius: 0,
+              },
+              "&:first-of-type": {
+                borderRadius: `${8 * appState.scaleFactor}px ${
+                  8 * appState.scaleFactor
+                }px 0 0`,
+              },
+              "&:last-of-type": {
+                borderRadius: `0 0 ${8 * appState.scaleFactor}px ${
+                  8 * appState.scaleFactor
+                }px`,
+              },
+            },
+            "& .MuiToggleButton-root": {
+              width: `${40 * appState.scaleFactor}px`,
+              height: `${40 * appState.scaleFactor}px`,
+              padding: 0,
+              color:
+                theme.palette.mode === DARK_THEME
+                  ? theme.palette.primary.light
+                  : theme.palette.primary.main,
+              fontSize: `${0.7 * appState.scaleFactor}rem`,
+              fontWeight: 600,
+              "&.Mui-selected": {
+                backgroundColor:
+                  theme.palette.mode === DARK_THEME
+                    ? "rgba(144, 202, 249, 0.2)"
+                    : "rgba(144, 202, 249, 0.15)",
+                color:
+                  theme.palette.mode === DARK_THEME
+                    ? theme.palette.primary.light
+                    : theme.palette.primary.main,
+              },
+              "&:hover": {
+                backgroundColor:
+                  theme.palette.mode === DARK_THEME
+                    ? "rgba(144, 202, 249, 0.1)"
+                    : "rgba(144, 202, 249, 0.1)",
+              },
+              "&:focus": {
+                outline: "none",
+              },
+            },
+          }}
+        >
+          {SCALE_FACTORS.map((scale) => (
+            <ToggleButton key={scale} value={scale}>
+              {scale === 0.75
+                ? "S"
+                : scale === 1
+                ? "M"
+                : scale === 1.25
+                ? "L"
+                : "XL"}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
 
         {/* Theme Toggle Button */}
         <IconButton

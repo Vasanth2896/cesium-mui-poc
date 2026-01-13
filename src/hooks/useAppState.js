@@ -3,12 +3,18 @@ import {
   DARK_THEME,
   LIGHT_THEME,
   LOCAL_STORAGE_THEME_KEY,
+  LOCAL_STORAGE_SCALE_KEY,
+  DEFAULT_SCALE,
 } from "../utils/constants";
 
 const initialState = {
   darkTheme: (() => {
     const savedTheme = localStorage.getItem(LOCAL_STORAGE_THEME_KEY);
     return savedTheme === DARK_THEME;
+  })(),
+  scaleFactor: (() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_SCALE_KEY);
+    return saved ? parseFloat(saved) : DEFAULT_SCALE;
   })(),
   searchOpen: false,
   searchQuery: "",
@@ -40,9 +46,18 @@ export const useAppState = () => {
     });
   }, []);
 
+  const setScaleFactor = useCallback((scale) => {
+    localStorage.setItem(LOCAL_STORAGE_SCALE_KEY, scale.toString());
+    setAppState((prev) => ({
+      ...prev,
+      scaleFactor: scale,
+    }));
+  }, []);
+
   return {
     appState,
     updateState,
     toggleTheme,
+    setScaleFactor,
   };
 };
