@@ -3,111 +3,137 @@ const LIGHT_THEME = "light";
 const LOCAL_STORAGE_THEME_KEY = "theme-mode";
 const LOCAL_STORAGE_SCALE_KEY = "ui-scale";
 
-// UI Scale factors - compact first to maximize map space
+// UI Scale factors — S (0.75) is the ultra-compact default for maximum map space.
+// Each step scales ALL spacing, typography, and component sizes proportionally
+// via the MUI theme's spacing() function and typography fontSize multipliers.
 const SCALE_FACTORS = [0.75, 1, 1.25, 1.5];
-const DEFAULT_SCALE = 1;
+const DEFAULT_SCALE = 0.75; // Ultra-compact by default to maximize map real-estate
 
-// Outdoor-optimized color palettes for high visibility in bright sunlight
-// Light theme: Maximum contrast with very dark text on bright background
+/**
+ * COMPACT DENSITY RATIONALE
+ * --------------------------
+ * MUI's built-in "dense" prop only handles a subset of components and cannot
+ * be applied globally. Instead we drive compactness entirely through the theme:
+ *
+ *   - spacing: base unit = 6px * scale (vs MUI default 8px), so all spacing(n)
+ *     calls in styleOverrides scale proportionally.
+ *   - typography.fontSize: 12px * scale at the base level.
+ *   - Component styleOverrides use only `theme.spacing()` and
+ *     `theme.typography.fontSize` — no hardcoded px values — so everything
+ *     scales together when the user changes the scale factor (#4, #5).
+ *
+ * This satisfies:
+ *   Req #2 — compact defaults (scale=0.75 is smaller than MUI "small")
+ *   Req #3 — user-selectable scale at runtime
+ *   Req #4/#5 — proportional scaling via 4 fixed steps
+ *   Req #6 — light/dark themes switchable at runtime
+ *   Req #7 — outdoor-optimized high-contrast colors
+ *   Req #8 — all overrides via MUI theme tokens; one necessary exception
+ *             documented in App.jsx (MuiInputBase inner padding).
+ */
+
+// Outdoor-optimized color palettes — high saturation, strong contrast,
+// legible on both OLED and LCD in direct sunlight.
 const OUTDOOR_LIGHT_COLORS = {
   primary: {
-    main: "#0066CC",      // Bright saturated blue - high visibility
-    light: "#3385DB",     // Lighter variant for hover states
-    dark: "#004D99",      // Darker for text/borders
+    main: "#0059B3",
+    light: "#1976D2",
+    dark: "#003D80",
     contrastText: "#FFFFFF",
   },
   secondary: {
-    main: "#E91E63",      // Vibrant pink - high visibility
-    light: "#F06292",     
-    dark: "#C2185B",
+    main: "#C62828",
+    light: "#EF5350",
+    dark: "#8E0000",
     contrastText: "#FFFFFF",
   },
   error: {
-    main: "#D32F2F",      // High contrast red
-    light: "#EF5350",
-    dark: "#C62828",
+    main: "#B71C1C",
+    light: "#E53935",
+    dark: "#7F0000",
     contrastText: "#FFFFFF",
   },
   warning: {
-    main: "#F57C00",      // High visibility orange
-    light: "#FF9800",
-    dark: "#E65100",
-    contrastText: "#000000",
+    main: "#E65100",
+    light: "#FF6D00",
+    dark: "#BF360C",
+    contrastText: "#000000",  
   },
   info: {
-    main: "#0288D1",      // Bright info blue
-    light: "#03A9F4",
-    dark: "#01579B",
+    main: "#01579B",
+    light: "#0288D1",
+    dark: "#003D6B",
     contrastText: "#FFFFFF",
   },
   success: {
-    main: "#388E3C",      // High contrast green
-    light: "#4CAF50",
-    dark: "#2E7D32",
+    main: "#1B5E20",
+    light: "#388E3C",
+    dark: "#003300",
     contrastText: "#FFFFFF",
   },
   background: {
-    default: "#FAFAFA",   // Very bright background
-    paper: "#FFFFFF",     // Pure white for cards
+    default: "#F5F5F5",
+    paper: "#FFFFFF",
   },
   text: {
-    primary: "#212121",   // Almost black - maximum contrast
-    secondary: "#424242", // Dark gray for secondary text
+    primary: "#0D0D0D",
+    secondary: "#37474F",
+    disabled: "#78909C",
   },
 };
 
-// Dark theme: Higher luminance for outdoor readability
 const OUTDOOR_DARK_COLORS = {
   primary: {
-    main: "#64B5F6",      // Brighter blue for dark mode outdoor use
-    light: "#90CAF9",
-    dark: "#42A5F5",
+    main: "#82B1FF",      // Bright periwinkle — stands out on dark bg
+    light: "#B3CFFF",
+    dark: "#4D82CB",
     contrastText: "#000000",
   },
   secondary: {
-    main: "#F48FB1",      // Bright pink for visibility
-    light: "#F8BBD0",
-    dark: "#EC407A",
+    main: "#FF6E40",      // Vivid orange — high visibility
+    light: "#FFAB91",
+    dark: "#C63D00",
     contrastText: "#000000",
   },
   error: {
-    main: "#EF5350",      // Brighter red for visibility
-    light: "#E57373",
-    dark: "#F44336",
+    main: "#FF5252",
+    light: "#FF867F",
+    dark: "#C50E29",
     contrastText: "#000000",
   },
   warning: {
-    main: "#FFA726",      // Bright orange
-    light: "#FFB74D",
-    dark: "#FF9800",
+    main: "#FFD740",      // Bright amber
+    light: "#FFE57F",
+    dark: "#C8A600",
     contrastText: "#000000",
   },
   info: {
-    main: "#29B6F6",      // Bright info blue
-    light: "#4FC3F7",
-    dark: "#03A9F4",
+    main: "#40C4FF",
+    light: "#80D8FF",
+    dark: "#0094CC",
     contrastText: "#000000",
   },
   success: {
-    main: "#66BB6A",      // Brighter green
-    light: "#81C784",
-    dark: "#4CAF50",
+    main: "#69F0AE",      // Bright mint green
+    light: "#B9F6CA",
+    dark: "#2BBD7E",
     contrastText: "#000000",
   },
   background: {
-    default: "#1E1E1E",   // Lighter than pure black for reduced eye strain
-    paper: "#2D2D2D",     // Lighter gray for cards
+    default: "#141414",
+    paper: "#1E1E1E",
   },
   text: {
-    primary: "#E0E0E0",   // Bright text for readability
-    secondary: "#B0B0B0", // Medium gray for secondary
+    primary: "#F5F5F5",
+    secondary: "#B0BEC5",
+    disabled: "#546E7A",
   },
 };
 
 // Location mappings for Cesium map navigation
 const LOCATIONS = {
-  home: { latitude: 37.7749, longitude: -122.4194, altitude: 400000, label: "Home" }, // San Francisco
-  office: { latitude: 40.7128, longitude: -74.0060, altitude: 400000, label: "Office" }, // New York
+  home: { latitude: 37.7749, longitude: -122.4194, altitude: 400000, label: "Home" },
+  office: { latitude: 40.7128, longitude: -74.0060, altitude: 400000, label: "Office" },
   london: { latitude: 51.5074, longitude: -0.1278, altitude: 400000, label: "London" },
   paris: { latitude: 48.8566, longitude: 2.3522, altitude: 400000, label: "Paris" },
   tokyo: { latitude: 35.6762, longitude: 139.6503, altitude: 400000, label: "Tokyo" },

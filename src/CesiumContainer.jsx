@@ -15,6 +15,7 @@ import {
   Alert,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import HomeIcon from "@mui/icons-material/Home";
@@ -25,6 +26,19 @@ import CloseIcon from "@mui/icons-material/Close";
 import { DARK_THEME, SCALE_FACTORS } from "./utils/constants.js";
 import { useScale } from "./contexts/ScaleContext";
 
+/**
+ * CesiumContainer
+ * ---------------
+ * Renders the Cesium globe full-screen with a minimal floating toolbar.
+ *
+ * Toolbar layout goals (Req #1 — maximize map space):
+ *   - All controls are in a single left-side column using compact MUI sizes.
+ *   - The search field expands inline above the search button — no modal.
+ *   - Scale selector is a ToggleButtonGroup (vertical) so it occupies one
+ *     column rather than a row.
+ *   - All sizing flows from the theme's spacing + scaleFactor, so the toolbar
+ *     shrinks/grows with the global scale setting (Req #3, #4, #5).
+ */
 const CesiumContainer = ({
   viewerRef,
   toggleTheme,
@@ -34,6 +48,7 @@ const CesiumContainer = ({
   const containerRef = useRef(null);
   const theme = useTheme();
   const { onScaleChange } = useScale();
+  const scale = appState.scaleFactor;
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -54,7 +69,7 @@ const CesiumContainer = ({
     flyToLocation(viewerRef.current, "home");
   };
 
-  const handleScaleChange = (event, newScale) => {
+  const handleScaleChange = (_event, newScale) => {
     if (newScale !== null) {
       onScaleChange(newScale);
     }
@@ -80,53 +95,58 @@ const CesiumContainer = ({
     };
   }, []);
 
+  // Shared styles for all floating action buttons so they're consistent
+  // and reference only theme tokens (Req #8).
+  const actionButtonSx = {
+    backgroundColor: theme.palette.background.paper,
+    color: theme.palette.primary.main,
+    borderRadius: theme.spacing(0.75),
+    border: `2px solid ${theme.palette.primary.main}`,
+    // Slightly stronger backdrop for outdoor readability (Req #7)
+    backdropFilter: "blur(4px)",
+    "&:hover": {
+      backgroundColor: theme.palette.primary.main,
+      color: theme.palette.primary.contrastText,
+    },
+    "&:focus": { outline: "none" },
+  };
+
   return (
     <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
       <div
         ref={containerRef}
         id="cesiumContainer"
         style={{ width: "100%", height: "100%" }}
-      ></div>
+      />
 
-      {/* Search and Control Buttons (collapsible) */}
+      {/* ── Floating toolbar ── */}
       <Box
         sx={{
           position: "absolute",
-          top: 12,
-          left: 12,
+          top: theme.spacing(1.5),
+          left: theme.spacing(1.5),
           zIndex: 1000,
           display: "flex",
           flexDirection: "column",
-          gap: 1,
+          gap: theme.spacing(0.75),
           alignItems: "flex-start",
         }}
       >
-        {/* Toggle handle - always visible */}
-        {/* Search Bar */}
+        {/* Inline search field — visible only when searchOpen */}
         {appState.searchOpen && (
           <form onSubmit={handleSearch}>
             <TextField
               autoFocus
-              size="small"
-              placeholder="Search location..."
+              placeholder="Search location…"
               value={appState.searchQuery}
               onChange={(e) => updateState({ searchQuery: e.target.value })}
               sx={{
                 backgroundColor: theme.palette.background.paper,
-                borderRadius: "8px",
-                "& .MuiOutlinedInput-root": {
-                  color: theme.palette.text.primary,
-                  "& fieldset": {
-                    borderColor: theme.palette.primary.main,
-                    borderWidth: "2px",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: theme.palette.primary.light,
-                  },
-                },
-                "& .MuiOutlinedInput-input::placeholder": {
-                  color: theme.palette.text.secondary,
-                  opacity: 0.7,
+                borderRadius: theme.spacing(0.75),
+                // Override fieldset border to use primary color
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: theme.palette.primary.main,
+                  borderWidth: "2px",
                 },
               }}
               InputProps={{
@@ -134,14 +154,12 @@ const CesiumContainer = ({
                   <InputAdornment position="end">
                     <IconButton
                       size="small"
-                      onClick={() => {
-                        updateState({ searchOpen: false, searchQuery: "" });
-                      }}
-                      sx={{
-                        color: theme.palette.primary.main,
-                      }}
+                      onClick={() =>
+                        updateState({ searchOpen: false, searchQuery: "" })
+                      }
+                      sx={{ color: theme.palette.primary.main }}
                     >
-                      <CloseIcon fontSize="small" />
+                      <CloseIcon />
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -150,147 +168,104 @@ const CesiumContainer = ({
           </form>
         )}
 
-        {/* Search Button */}
-        <IconButton
-          onClick={() => updateState({ searchOpen: !appState.searchOpen })}
-          sx={{
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.primary.main,
-            borderRadius: "8px",
-            border: `2px solid ${theme.palette.primary.main}`,
-            "&:hover": {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-            },
-            "&:focus": {
-              outline: "none",
-            },
-          }}
-        >
-          <SearchIcon />
-        </IconButton>
+        {/* Search toggle */}
+        <Tooltip title="Search location" placement="right">
+          <IconButton
+            size="small"
+            onClick={() => updateState({ searchOpen: !appState.searchOpen })}
+            sx={actionButtonSx}
+          >
+            <SearchIcon />
+          </IconButton>
+        </Tooltip>
 
-        {/* Error Message */}
+        {/* Search error */}
         {appState.searchError && (
           <Alert
             severity="error"
             onClose={() => updateState({ searchError: "" })}
-            sx={{
-              mt: 1,
-              fontSize: "0.85rem",
-              padding: "8px 12px",
-              backgroundColor: theme.palette.error.main,
-              color: theme.palette.error.contrastText,
-              fontWeight: 600,
-            }}
+            sx={{ maxWidth: `${220 * scale}px` }}
           >
             {appState.searchError}
           </Alert>
         )}
 
-        {/* Home Button */}
-        <IconButton
-          onClick={handleHomeClick}
-          sx={{
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.primary.main,
-            borderRadius: "8px",
-            border: `2px solid ${theme.palette.primary.main}`,
-            "&:hover": {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-            },
-            "&:focus": {
-              outline: "none",
-            },
-          }}
-        >
-          <HomeIcon />
-        </IconButton>
+        {/* Home */}
+        <Tooltip title="Fly home" placement="right">
+          <IconButton size="small" onClick={handleHomeClick} sx={actionButtonSx}>
+            <HomeIcon />
+          </IconButton>
+        </Tooltip>
 
-        {/* UI Scale Selector */}
+        {/* ── UI Scale selector ──
+            ToggleButtonGroup (vertical) keeps the toolbar in a single column.
+            Labels: S / M / L / XL map to SCALE_FACTORS [0.75, 1, 1.25, 1.5].
+            The button width is fixed to the icon button size so it blends with
+            the rest of the toolbar. */}
         <ToggleButtonGroup
           value={appState.scaleFactor}
           exclusive
           onChange={handleScaleChange}
           orientation="vertical"
+          size="small"
           sx={{
             backgroundColor: theme.palette.background.paper,
-            borderRadius: `${8 * appState.scaleFactor}px`,
             border: `2px solid ${theme.palette.primary.main}`,
+            borderRadius: theme.spacing(0.75),
+            overflow: "hidden",
+            // Remove default internal borders — the outer border is enough
             "& .MuiToggleButtonGroup-grouped": {
-              margin: 0,
               border: "none",
-              "&:not(:first-of-type)": {
-                borderRadius: 0,
-              },
-              "&:first-of-type": {
-                borderRadius: `${8 * appState.scaleFactor}px ${
-                  8 * appState.scaleFactor
-                }px 0 0`,
-              },
-              "&:last-of-type": {
-                borderRadius: `0 0 ${8 * appState.scaleFactor}px ${
-                  8 * appState.scaleFactor
-                }px`,
-              },
-            },
-            "& .MuiToggleButton-root": {
-              width: `${40 * appState.scaleFactor}px`,
-              height: `${40 * appState.scaleFactor}px`,
+              borderRadius: 0,
+              // Fixed width matching icon button so toolbar stays aligned
+              width: `${32 * scale}px`,
+              minHeight: `${28 * scale}px`,
               padding: 0,
+              fontSize: `${10 * scale}px`,
+              fontWeight: 700,
               color: theme.palette.primary.main,
-              fontSize: `${0.7 * appState.scaleFactor}rem`,
-              fontWeight: 600,
               "&.Mui-selected": {
                 backgroundColor: theme.palette.primary.main,
                 color: theme.palette.primary.contrastText,
+                "&:hover": {
+                  backgroundColor: theme.palette.primary.dark,
+                },
               },
               "&:hover": {
                 backgroundColor: theme.palette.action.hover,
               },
-              "&:focus": {
-                outline: "none",
-              },
+              "&:focus": { outline: "none" },
             },
           }}
         >
-          {SCALE_FACTORS.map((scale) => (
-            <ToggleButton key={scale} value={scale}>
-              {scale === 0.75
-                ? "S"
-                : scale === 1
-                ? "M"
-                : scale === 1.25
-                ? "L"
-                : "XL"}
-            </ToggleButton>
-          ))}
+          {SCALE_FACTORS.map((s) => {
+            const label =
+              s === 0.75 ? "S" : s === 1 ? "M" : s === 1.25 ? "L" : "XL";
+            return (
+              <Tooltip key={s} title={`UI size: ${label}`} placement="right">
+                <ToggleButton value={s}>{label}</ToggleButton>
+              </Tooltip>
+            );
+          })}
         </ToggleButtonGroup>
 
-        {/* Theme Toggle Button */}
-        <IconButton
-          onClick={toggleTheme}
-          sx={{
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.primary.main,
-            borderRadius: "8px",
-            border: `2px solid ${theme.palette.primary.main}`,
-            "&:hover": {
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
-            },
-            "&:focus": {
-              outline: "none",
-            },
-          }}
+        {/* Light / dark theme toggle */}
+        <Tooltip
+          title={
+            theme.palette.mode === DARK_THEME
+              ? "Switch to light theme"
+              : "Switch to dark theme"
+          }
+          placement="right"
         >
-          {theme.palette.mode === DARK_THEME ? (
-            <Brightness7Icon />
-          ) : (
-            <Brightness4Icon />
-          )}
-        </IconButton>
+          <IconButton size="small" onClick={toggleTheme} sx={actionButtonSx}>
+            {theme.palette.mode === DARK_THEME ? (
+              <Brightness7Icon />
+            ) : (
+              <Brightness4Icon />
+            )}
+          </IconButton>
+        </Tooltip>
       </Box>
     </div>
   );
